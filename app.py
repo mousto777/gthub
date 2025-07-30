@@ -1,27 +1,19 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
-from dotenv import load_dotenv
-import os
 
 app = Flask(__name__)
-load_dotenv()
+client = MongoClient("mongodb+srv://moustaphadiopimt:<db_password>@cluster0gthub.0eoswgn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0gthub")
+db = client['gthub']
+modules_collection = db['modules']
 
-# Connexion à MongoDB
-client = MongoClient(os.getenv("MONGO_URI"))
-db = client["Cluster0gthub"]
-collection = db["gthub"]
-
-@app.route('/question', methods=['GET'])
-def get_answer():
-    question = request.args.get('q')
-
-    # Exemple simple : chercher un document avec un champ "question"
-    result = collection.find_one({"question": question})
-
-    if result:
-        return jsonify({"reponse": result["reponse"]})
+@app.route('/module', methods=['GET'])
+def get_module():
+    nom = request.args.get('nom')
+    module = modules_collection.find_one({"nom": nom})
+    if module:
+        return jsonify({"nom": module['nom'], "description": module['description'], "responsable": module['responsable']})
     else:
-        return jsonify({"reponse": "Désolé, je n’ai pas trouvé de réponse."})
+        return jsonify({"error": "Module non trouvé"}), 404
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
